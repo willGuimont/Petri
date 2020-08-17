@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 82bb22f85f228e67c9f9d45c45fe6dbf8be53542bfe6ebf24325574be08ad471
+-- hash: 917539c91690bc3a79028a879ca7f8fb0fc238b2a3eba4dce1d1803ef2a6fb8e
 
 name:           petri
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      DefaultMap
       Petri
   other-modules:
       Paths_petri
