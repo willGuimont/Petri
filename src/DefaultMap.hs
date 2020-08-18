@@ -7,6 +7,8 @@ module DefaultMap
     delete,
     lookup,
     (!),
+    member,
+    notMember,
     null,
     size,
   )
@@ -20,6 +22,10 @@ data DefaultMap k v = DefMap
   { defDefault :: v,
     defMap :: M.Map k v
   }
+  deriving (Show)
+
+instance Functor (DefaultMap k) where
+  fmap f dm = DefMap {defDefault = f (defDefault dm), defMap = fmap f $ defMap dm}
 
 mapOnMap :: (M.Map k v -> M.Map kk v) -> DefaultMap k v -> DefaultMap kk v
 mapOnMap f m = DefMap (defDefault m) $ f (defMap m)
@@ -35,7 +41,7 @@ fromList :: Ord k => v -> [(k, v)] -> DefaultMap k v
 fromList def xs = DefMap def $ M.fromList xs
 
 -- Insertion
-insert :: Ord k => k -> a -> DefaultMap k a -> DefaultMap k a
+insert :: Ord k => k -> v -> DefaultMap k v -> DefaultMap k v
 insert k x = mapOnMap (M.insert k x)
 
 -- Deletion/Update
@@ -48,6 +54,12 @@ lookup k m = fromMaybe (defDefault m) $ M.lookup k (defMap m)
 
 (!) :: Ord k => DefaultMap k v -> k -> v
 m ! k = lookup k m
+
+member :: Ord k => k -> DefaultMap k v -> Bool
+member k = (M.member k) . defMap
+
+notMember :: Ord k => k -> DefaultMap k v -> Bool
+notMember k = (M.notMember k) . defMap
 
 null :: DefaultMap k v -> Bool
 null m = size m == 0
