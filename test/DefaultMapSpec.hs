@@ -93,6 +93,12 @@ spec = do
         -> let xs_nub = nubBy (\x y -> fst x == fst y) xs
            in DM.toList (DM.fromList def xs_nub)
               `shouldBe` sortBy (\x y -> compare (fst x) (fst y)) (nub xs_nub)
+  describe "DefaultMap.keys"
+    $ do
+      it "returns all keys"
+        $ property
+        $ \def (xs :: [(KeyType, ValueType)])
+        -> (sort . nub) (fmap fst xs) `shouldBe` DM.keys (DM.fromList def xs)
   describe "DefaultMap.Functor"
     $ do
       it "preserves identity morphism"
@@ -103,3 +109,18 @@ spec = do
         $ property
         $ \(m :: DM.DefaultMap KeyType ValueType) (Fn (f :: OtherType -> AnotherType)) (Fn (g :: ValueType -> OtherType))
         -> DM.toList (fmap (f . g) m) `shouldBe` DM.toList ((fmap f . fmap g) m)
+  describe "DefaultMap.Applicative"
+    $ do
+      it "preserves identity morphism"
+        $ property
+        $ \(m :: DM.DefaultMap KeyType ValueType)
+        -> DM.toList (pure id <*> m) `shouldBe` DM.toList m
+      it "preserves composition of morphisms"
+        $ property
+        $ \x -> x == (x :: Int)
+      it "respects homomorphism"
+        $ property
+        $ \x -> x == (x :: Int)
+      it "respects interchange law"
+        $ property
+        $ \x -> x == (x :: Int)

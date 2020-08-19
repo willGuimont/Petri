@@ -23,8 +23,21 @@ data DefaultMap k v = DefMap { defDefault :: v, defMap :: M.Map k v }
 
 -- Instance
 instance Functor (DefaultMap k) where
+  -- Maps function on the default value and values of the map
   fmap f dm =
     DefMap { defDefault = f (defDefault dm), defMap = f <$> defMap dm }
+
+instance (Ord k) => Applicative (DefaultMap k) where
+  -- Empty map with x as a default
+  pure x = empty x
+  -- Applies default of f to the default of x, applies f[k] to x[k] for each k in the keys of x
+  f <*> x = go (keys x) $ empty def
+    where
+      def = defDefault f $ defDefault x
+
+      go (k:ks) m = let m' = insert k ((f ! k) (x ! k)) m
+                    in go ks m'
+      go [] m = m
 
 mapOnMap :: (M.Map k v -> M.Map kk v) -> DefaultMap k v -> DefaultMap kk v
 mapOnMap f m = DefMap (defDefault m) $ f (defMap m)
