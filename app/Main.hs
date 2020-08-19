@@ -1,6 +1,4 @@
-module Main where
-
-import Petri
+module Main (main) where
 
 main :: IO ()
 main = putStrLn "Hello"

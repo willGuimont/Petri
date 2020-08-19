@@ -1,31 +1,30 @@
 module DefaultMap
-  ( DefaultMap,
-    empty,
-    singleton,
-    fromList,
-    insert,
-    delete,
-    lookup,
-    (!),
-    member,
-    notMember,
-    null,
-    size,
-  )
-where
+    ( DefaultMap
+    , empty
+    , singleton
+    , fromList
+    , insert
+    , delete
+    , lookup
+    , (!)
+    , member
+    , notMember
+    , null
+    , size
+    , toList
+    , keys) where
 
 import qualified Data.Map as M
-import Data.Maybe
-import Prelude hiding (lookup, null)
+import           Data.Maybe
+import           Prelude hiding (lookup, null)
 
-data DefaultMap k v = DefMap
-  { defDefault :: v,
-    defMap :: M.Map k v
-  }
+data DefaultMap k v = DefMap { defDefault :: v, defMap :: M.Map k v }
   deriving (Show)
 
+-- Instance
 instance Functor (DefaultMap k) where
-  fmap f dm = DefMap {defDefault = f (defDefault dm), defMap = fmap f $ defMap dm}
+  fmap f dm =
+    DefMap { defDefault = f (defDefault dm), defMap = f <$> defMap dm }
 
 mapOnMap :: (M.Map k v -> M.Map kk v) -> DefaultMap k v -> DefaultMap kk v
 mapOnMap f m = DefMap (defDefault m) $ f (defMap m)
@@ -56,13 +55,20 @@ lookup k m = fromMaybe (defDefault m) $ M.lookup k (defMap m)
 m ! k = lookup k m
 
 member :: Ord k => k -> DefaultMap k v -> Bool
-member k = (M.member k) . defMap
+member k = M.member k . defMap
 
 notMember :: Ord k => k -> DefaultMap k v -> Bool
-notMember k = (M.notMember k) . defMap
+notMember k = M.notMember k . defMap
 
 null :: DefaultMap k v -> Bool
 null m = size m == 0
 
 size :: DefaultMap k v -> Int
 size = M.size . defMap
+
+-- Transformation
+toList :: DefaultMap k v -> [(k, v)]
+toList = M.toList . defMap
+
+keys :: DefaultMap k v -> [k]
+keys = fmap fst . toList

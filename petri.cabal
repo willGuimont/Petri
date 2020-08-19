@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a75fdab14b0e4cf89b86104d729116d27cba45c2a3b7940b71886b73d5566fef
+-- hash: 874bfc2b1e98ae5032df53484b9e70d5cc6bac34d9bde0b5332e244018dbe278
 
 name:           petri
 version:        0.1.0.0
@@ -33,6 +33,7 @@ library
       Paths_petri
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fhide-source-paths -freverse-errors
   build-depends:
       base >=4.7 && <5
     , containers
@@ -44,7 +45,7 @@ executable petri-exe
       Paths_petri
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fhide-source-paths -freverse-errors -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
@@ -59,7 +60,7 @@ test-suite petri-test
       Paths_petri
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -Wmissing-export-lists -Wpartial-fields -fhide-source-paths -freverse-errors -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
     , base >=4.7 && <5
