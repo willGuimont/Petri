@@ -97,8 +97,8 @@ spec = do
     $ do
       it "returns all keys"
         $ property
-        $ \def (xs :: [(KeyType, ValueType)])
-        -> (sort . nub) (fmap fst xs) `shouldBe` DM.keys (DM.fromList def xs)
+        $ \def (xs :: [(KeyType, ValueType)]) -> (sort . nub) (fmap fst xs)
+        `shouldBe` DM.keys (DM.fromList def xs)
   describe "DefaultMap.Functor"
     $ do
       it "preserves identity morphism"
@@ -107,20 +107,23 @@ spec = do
         `shouldBe` DM.toList m
       it "preserves composition of morphisms"
         $ property
-        $ \(m :: DM.DefaultMap KeyType ValueType) (Fn (f :: OtherType -> AnotherType)) (Fn (g :: ValueType -> OtherType))
-        -> DM.toList (fmap (f . g) m) `shouldBe` DM.toList ((fmap f . fmap g) m)
+        $ \(m
+            :: DM.DefaultMap
+              KeyType
+              ValueType) (Fn (f :: OtherType -> AnotherType)) (Fn
+                                                                 (g
+                                                                  :: ValueType
+                                                                  -> OtherType))
+        -> DM.toList (fmap (f . g) m)
+        `shouldBe` DM.toList ((fmap f . fmap g) m)
   describe "DefaultMap.Applicative"
     $ do
       it "preserves identity morphism"
         $ property
-        $ \(m :: DM.DefaultMap KeyType ValueType)
-        -> DM.toList (pure id <*> m) `shouldBe` DM.toList m
+        $ \(m :: DM.DefaultMap KeyType ValueType) -> DM.toList (pure id <*> m)
+        `shouldBe` DM.toList m
       it "preserves composition of morphisms"
         $ property
         $ \x -> x == (x :: Int)
-      it "respects homomorphism"
-        $ property
-        $ \x -> x == (x :: Int)
-      it "respects interchange law"
-        $ property
-        $ \x -> x == (x :: Int)
+      it "respects homomorphism" $ property $ \x -> x == (x :: Int)
+      it "respects interchange law" $ property $ \x -> x == (x :: Int)

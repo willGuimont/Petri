@@ -30,6 +30,7 @@ instance Functor (DefaultMap k) where
 instance (Ord k) => Applicative (DefaultMap k) where
   -- Empty map with x as a default
   pure x = empty x
+
   -- Applies default of f to the default of x, applies f[k] to x[k] for each k in the keys of x
   f <*> x = go (keys x) $ empty def
     where
