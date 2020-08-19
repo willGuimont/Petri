@@ -17,9 +17,10 @@ module DefaultMap
 import qualified Data.Map as M
 import           Data.Maybe
 import           Prelude hiding (lookup, null)
+import           Data.List (nub)
 
 data DefaultMap k v = DefMap { defDefault :: v, defMap :: M.Map k v }
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- Instance
 instance Functor (DefaultMap k) where
@@ -31,8 +32,9 @@ instance (Ord k) => Applicative (DefaultMap k) where
   -- Empty map with x as a default
   pure x = empty x
 
-  -- Applies default of f to the default of x, applies f[k] to x[k] for each k in the keys of x
-  f <*> x = go (keys x) $ empty def
+  -- Applies default of f to the default of x
+  -- Applies f[k] to x[k] for each k in the keys in x and f
+  f <*> x = go (nub $ keys f ++ keys x) $ empty def
     where
       def = defDefault f $ defDefault x
 

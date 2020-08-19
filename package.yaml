@@ -31,7 +31,7 @@ ghc-options:
   - -fhide-source-paths
   - -freverse-errors
 
-extensions:
+default-extensions:
   - ApplicativeDo
   - RecordWildCards
 
