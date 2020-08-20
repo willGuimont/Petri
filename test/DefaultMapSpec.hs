@@ -105,55 +105,52 @@ spec = do
         $ property
         $ \(m :: DM.DefaultMap KeyType ValueType) -> DM.toList (fmap id m)
         `shouldBe` DM.toList m
-      it "preserves composition of morphisms"
-        $ property
-        $ \(m
-            :: DM.DefaultMap
-              KeyType
-              ValueType) (Fn (f :: OtherType -> AnotherType)) (Fn
-                                                                 (g
-                                                                  :: ValueType
-                                                                  -> OtherType))
-        -> fmap (f . g) m `shouldBe` (fmap f . fmap g) m
+      it "preserves composition of morphisms" $ property functorCompositionProp
   describe "Applicative"
     $ do
       it "preserves identity morphism"
         $ property
         $ \(m :: DM.DefaultMap KeyType ValueType) -> (pure id <*> m)
         `shouldBe` m
-      it "respects homomorphism"
-        $ property
-        $ \(Fn (f :: ValueType -> OtherType)) x
-        -> (pure f <*> (pure x :: DM.DefaultMap KeyType ValueType))
-        `shouldBe` (pure (f x))
+      it "respects homomorphism" $ property applicativeHomomorphismProp
       it "preserves composition of morphisms"
-        $ property
-        $ \(uWrapped
-            :: DM.DefaultMap
-              KeyType
-              (Fun OtherType AnotherType)) (vWrapped
-                                            :: DM.DefaultMap
-                                              KeyType
-                                              (Fun ValueType OtherType)) (w :: DM.DefaultMap
-                                                                              KeyType
-                                                                              ValueType)
-        -> let u = fmap unpackFn uWrapped
-               v = fmap unpackFn vWrapped
-           in (pure (.) <*> u <*> v <*> w)
-              `shouldBe` ((u <*> (v <*> w :: DM.DefaultMap KeyType OtherType))
-                          :: DM.DefaultMap KeyType AnotherType)
-      it "respects interchange law"
-        $ property
-        $ \(uWrapped
-            :: DM.DefaultMap KeyType (Fun ValueType OtherType)) (y :: ValueType)
-        -> let u = fmap unpackFn uWrapped
-           in u <*> pure y `shouldBe` pure ($ y) <*> u
-      it "is consistent with fmap"
-        $ property
-        $ \(Fn (f :: ValueType -> OtherType)) (m :: DM.DefaultMap
-                                                   KeyType
-                                                   ValueType) -> (fmap f m)
-        `shouldBe` (pure f <*> m)
+        $ property applicativeCompositionProp
+      it "respects interchange law" $ property applicativeInterchangeProp
+      it "is consistent with fmap" $ property applicativeFunctorConsistentProp
 
-unpackFn :: Fun a b -> a -> b
-unpackFn (Fn f) = f
+functorCompositionProp :: DM.DefaultMap KeyType ValueType
+                       -> Fun OtherType AnotherType
+                       -> Fun ValueType OtherType
+                       -> IO ()
+functorCompositionProp m (Fn f) (Fn g) = fmap (f . g) m
+  `shouldBe` (fmap f . fmap g) m
+
+applicativeHomomorphismProp :: Fun ValueType OtherType -> ValueType -> IO ()
+applicativeHomomorphismProp (Fn f) x = (pure f <*> m) `shouldBe` (pure (f x))
+  where
+    m :: DM.DefaultMap KeyType ValueType
+    m = pure x
+
+applicativeCompositionProp :: DM.DefaultMap KeyType (Fun OtherType AnotherType)
+                           -> DM.DefaultMap KeyType (Fun ValueType OtherType)
+                           -> DM.DefaultMap KeyType ValueType
+                           -> IO ()
+applicativeCompositionProp uWrapped vWrapped w = (pure (.) <*> u <*> v <*> w)
+  `shouldBe` (u <*> (v <*> w))
+  where
+    u = fmap applyFun uWrapped
+
+    v = fmap applyFun vWrapped
+
+applicativeInterchangeProp
+  :: DM.DefaultMap KeyType (Fun ValueType OtherType) -> ValueType -> IO ()
+applicativeInterchangeProp uWrapped y = (u <*> pure y)
+  `shouldBe` (pure ($ y) <*> u)
+  where
+    u = fmap applyFun uWrapped
+
+applicativeFunctorConsistentProp
+  :: Fun ValueType OtherType -> DM.DefaultMap KeyType ValueType -> IO ()
+applicativeFunctorConsistentProp (Fn f) m = (fmap f m)
+  `shouldBe` (pure f <*> m)
+
