@@ -6,6 +6,8 @@ module DefaultMap
     , singleton
     , fromList
     , insert
+    , adjust
+    , adjustWithKey
     , delete
     , lookup
     , (!)
@@ -79,6 +81,12 @@ insert :: Ord k => k -> v -> DefaultMap k v -> DefaultMap k v
 insert k x = mapOnMap (M.insert k x)
 
 -- Deletion/Update
+adjust :: Ord k => (v -> v) -> k -> DefaultMap k v -> DefaultMap k v
+adjust f = adjustWithKey (\_ y -> f y)
+
+adjustWithKey :: Ord k => (k -> v -> v) -> k -> DefaultMap k v -> DefaultMap k v
+adjustWithKey f k m = (insert k $ f k $ lookup k m) m
+
 delete :: Ord k => k -> DefaultMap k v -> DefaultMap k v
 delete k = mapOnMap (M.delete k)
 

@@ -46,6 +46,30 @@ spec = do
       it "contains element after insert"
         $ property
         $ \(k :: KeyType) (v :: ValueType) m -> k `DM.member` DM.insert k v m
+  describe "adjust"
+    $ do
+      it "adjust value at index"
+        $ property
+        $ \(Fn (f :: ValueType -> ValueType)) (k :: KeyType) m
+        -> DM.adjust f k m DM.! k `shouldBe` f (DM.lookup k m)
+      it "does not modify other values"
+        $ property
+        $ \(Fn (f :: ValueType -> ValueType)) (k :: KeyType) m
+        -> let g = filter ((/= k) . fst)
+           in g (DM.toList (DM.adjust f k m)) `shouldBe` g (DM.toList m)
+  describe "adjustWithKey"
+    $ do
+      it "adjust value at index"
+        $ property
+        $ \(Fn (fUncurried :: (KeyType, ValueType) -> ValueType)) k m
+        -> let f = curry fUncurried
+           in DM.adjustWithKey f k m DM.! k `shouldBe` f k (DM.lookup k m)
+      it "does not modify other values"
+        $ property
+        $ \(Fn (fUncurried :: (KeyType, ValueType) -> ValueType)) (k :: KeyType) m
+        -> let g = filter ((/= k) . fst)
+               f = curry fUncurried
+           in g (DM.toList (DM.adjustWithKey f k m)) `shouldBe` g (DM.toList m)
   describe "delete"
     $ do
       it "does not contain element after delete"
