@@ -1,5 +1,8 @@
 module Main (main) where
 
+import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Game
+
 {-
 Workflow for UI
 
@@ -18,5 +21,32 @@ Workflow for UI
 11. Click Play, Transition 1 fires, Place 1 is now empty, Place 2 has 2 tokens
 
 -}
+
+-- Type
+data World = World {}
+
+-- Constants
+fps :: Int
+fps = 20
+
+windowSize :: Int
+windowSize = 500
+
+-- Game
+windowDisplay :: Display
+windowDisplay = InWindow "Petri Net" (windowSize, windowSize) (10, 10)
+
+initialState :: World
+initialState = World {}
+
+draw :: World -> Picture
+draw _ = circle 10.0
+
+inputHandler :: Event -> World -> World
+inputHandler _ = id
+
+update :: Float -> World -> World
+update _ = id
+
 main :: IO ()
-main = putStrLn "Hello"
+main = play windowDisplay (light orange) fps initialState draw inputHandler update

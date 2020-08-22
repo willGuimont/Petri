@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d68711a6cf3ce47bb8fc963c8fd79fea7251e24f788c1078505239cc831c11b2
+-- hash: 3e8ed86b105b5a406ce85fd5c432c06fe035075af6359a0c7f2e8269ce0acff9
 
 name:           petri
 version:        0.1.0.0
@@ -38,12 +38,14 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , gloss
     , lens
   default-language: Haskell2010
 
 executable petri-exe
   main-is: Main.hs
   other-modules:
+      VisualPetri
       Paths_petri
   hs-source-dirs:
       app
@@ -52,6 +54,7 @@ executable petri-exe
   build-depends:
       base >=4.7 && <5
     , containers
+    , gloss
     , lens
     , petri
   default-language: Haskell2010
@@ -71,6 +74,7 @@ test-suite petri-test
       QuickCheck
     , base >=4.7 && <5
     , containers
+    , gloss
     , hspec
     , lens
     , petri
