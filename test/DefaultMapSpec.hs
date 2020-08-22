@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module DefaultMapSpec where
+module DefaultMapSpec (spec) where
 
 import           Data.List
 import qualified DefaultMap as DM
@@ -150,7 +150,9 @@ spec = do
   describe "Traversable"
     $ do
       it "traverse 1"
-        $ traverse (\x -> Just x) (DM.fromList 0 [(0, 1), (1, 2), (2, 3)])
+        $ traverse
+          Just
+          (DM.fromList 0 [(0 :: Integer, 1 :: Integer), (1, 2), (2, 3)])
         `shouldBe` Just (DM.fromList 0 [(0, 1), (1, 2), (2, 3)])
       it "traverse 2"
         $ traverse

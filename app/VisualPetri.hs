@@ -1,5 +1,8 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module VisualPetri () where
 
-import Petri
+import           Control.Lens
+import           Petri
 
 

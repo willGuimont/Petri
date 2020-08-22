@@ -1,19 +1,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module PetriSpec where
+module PetriSpec (spec) where
 
 import           Test.Hspec
-import           Test.QuickCheck
-import           Control.Lens
 import qualified Petri as P
 
-{-
-  emptyNet
-  addEmptyPlace
-  addEmptyTransition
-  addPlaceDeltaToTransition
-  step
--}
 spec :: Spec
 spec = do
   describe "simple"

@@ -21,7 +21,7 @@ import           Data.Monoid
 import qualified Data.Map as M
 import qualified DefaultMap as DM
 
-newtype Id a = Id { unId :: Integer }
+newtype Id a = Id Integer
   deriving (Eq)
 
 deriving instance Ord (Id a)
@@ -55,8 +55,6 @@ makeLenses ''Transition
 
 type Arc = Place -> Maybe Place
 
-type Arcs = DM.DefaultMap (Id Place) Arc
-
 -- Net
 data Net = Net { _netPlaces :: Places
                , _netNextPlaceIndex :: Integer
@@ -77,7 +75,7 @@ emptyNet = Net { _netPlaces = DM.empty (Place { _placeNumToken = 0 })
 emptyPlace :: Place
 emptyPlace = Place { _placeNumToken = 0 }
 
--- Add an empty place to the net, uses consecutive indexes
+-- Add an empty place to the net, uses consecutive indices
 addEmptyPlace :: Net -> (Id Place, Net)
 addEmptyPlace n = (i', n')
   where
@@ -91,6 +89,7 @@ addEmptyPlace n = (i', n')
 emptyTransition :: Transition
 emptyTransition = Transition { _transMap = DM.empty (placeDeltaOf 0) }
 
+-- Add an empty transition to the net, uses consecutive indices
 addEmptyTransition :: Net -> (Id Transition, Net)
 addEmptyTransition n = (i', n')
   where
@@ -106,12 +105,13 @@ addEmptyTransition n = (i', n')
 placeDeltaOf :: Integer -> PlaceDelta
 placeDeltaOf x = PlaceDelta { _placeDeltaToken = x }
 
--- need to mappend to existing 
+-- Mappend PlaceDelta to transition
 addPlaceDeltaToTransition
   :: Id Place -> Id Transition -> PlaceDelta -> Net -> Net
 addPlaceDeltaToTransition ip it pd = netTransitions . ix it
   %~ (transMap %~ DM.adjust (<> pd) ip)
 
+-- Transformes a PlaceDelta to an Arc, so that we can apply it to Place
 placeDeltaToArc :: PlaceDelta -> Arc
 placeDeltaToArc pd = test . go
   where
@@ -121,21 +121,23 @@ placeDeltaToArc pd = test . go
              then Just x
              else Nothing
 
-transitionToArcs :: Transition -> Arcs
-transitionToArcs = undefined
+-- Apply a PlaceDelta to a Place
+-- Returns Nothing if the delta would occur a negative value
+applyPlaceDeltaToPlace :: PlaceDelta -> Place -> Maybe Place
+applyPlaceDeltaToPlace = placeDeltaToArc
 
+-- Apply a PlaceDelta to a particular Place in a Net
+-- Returns Nothing if the delta would occur a negative value
 applyPlaceDeltaToNet :: Id Place -> PlaceDelta -> Net -> Maybe Net
 applyPlaceDeltaToNet i pd n = do
   let place = DM.lookup i $ n ^. netPlaces
   newPlace <- applyPlaceDeltaToPlace pd place
   return $ (netPlaces %~ DM.insert i newPlace) n
 
-applyPlaceDeltaToPlace :: PlaceDelta -> Place -> Maybe Place
-applyPlaceDeltaToPlace = placeDeltaToArc
-
--- Returns nothing if any place is nothing, uses sequenceA
--- Just is num token is non negative, nothing if < 0
--- works by using the DM.DefaultMap Applicative (need to build a DefaultMap of Arc :: Place -> Maybe Place)
+-- Returns Just is num token is non negative, 
+-- Returns Nothing if any place has negative value
+-- Uses Applicative instance of DefaultMap so that
+-- each PlaceDelta is applied to corresponding places
 applyTransition :: Places -> Transition -> Maybe Places
 applyTransition ps ts = sequenceA (arcs <*> ps)
   where
