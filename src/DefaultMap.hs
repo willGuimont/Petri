@@ -84,7 +84,8 @@ insert k x = mapOnMap (M.insert k x)
 adjust :: Ord k => (v -> v) -> k -> DefaultMap k v -> DefaultMap k v
 adjust f = adjustWithKey (\_ y -> f y)
 
-adjustWithKey :: Ord k => (k -> v -> v) -> k -> DefaultMap k v -> DefaultMap k v
+adjustWithKey
+  :: Ord k => (k -> v -> v) -> k -> DefaultMap k v -> DefaultMap k v
 adjustWithKey f k m = (insert k $ f k $ lookup k m) m
 
 delete :: Ord k => k -> DefaultMap k v -> DefaultMap k v

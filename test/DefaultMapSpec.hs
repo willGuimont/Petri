@@ -66,7 +66,8 @@ spec = do
            in DM.adjustWithKey f k m DM.! k `shouldBe` f k (DM.lookup k m)
       it "does not modify other values"
         $ property
-        $ \(Fn (fUncurried :: (KeyType, ValueType) -> ValueType)) (k :: KeyType) m
+        $ \(Fn (fUncurried :: (KeyType, ValueType) -> ValueType)) (k
+                                                                   :: KeyType) m
         -> let g = filter ((/= k) . fst)
                f = curry fUncurried
            in g (DM.toList (DM.adjustWithKey f k m)) `shouldBe` g (DM.toList m)
