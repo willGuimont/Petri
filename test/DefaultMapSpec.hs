@@ -22,6 +22,8 @@ type OtherType = String
 
 type AnotherType = Bool
 
+type FunctorType = Maybe
+
 spec :: Spec
 spec = do
   describe "empty"
@@ -54,12 +56,12 @@ spec = do
     $ do
       it "returns element when present"
         $ property
-        $ \k v (m :: DM.DefaultMap KeyType ValueType) -> v
-        `shouldBe` DM.lookup k (DM.insert k v m)
+        $ \k v (m :: DM.DefaultMap KeyType ValueType)
+        -> DM.lookup k (DM.insert k v m) `shouldBe` v
       it "returns default when not present"
         $ property
         $ \(def :: ValueType) (k :: KeyType)
-        -> def `shouldBe` DM.empty def DM.! k
+        -> DM.empty def DM.! k `shouldBe` def
   describe "member"
     $ do
       it "returns true when in map"
@@ -97,8 +99,8 @@ spec = do
     $ do
       it "returns all keys"
         $ property
-        $ \def (xs :: [(KeyType, ValueType)]) -> (sort . nub) (fmap fst xs)
-        `shouldBe` DM.keys (DM.fromList def xs)
+        $ \def (xs :: [(KeyType, ValueType)]) -> DM.keys (DM.fromList def xs)
+        `shouldBe` (sort . nub) (fst <$> xs)
   describe "Functor"
     $ do
       it "preserves identity morphism"
@@ -117,6 +119,21 @@ spec = do
         $ property applicativeCompositionProp
       it "respects interchange law" $ property applicativeInterchangeProp
       it "is consistent with fmap" $ property applicativeFunctorConsistentProp
+  describe "Foldable"
+    $ do
+      it "fold" $ property foldableProp
+  describe "Traversable"
+    $ do
+      it "traverse 1"
+        $ traverse (\x -> Just x) (DM.fromList 0 [(0, 1), (1, 2), (2, 3)])
+        `shouldBe` Just (DM.fromList 0 [(0, 1), (1, 2), (2, 3)])
+      it "traverse 2"
+        $ traverse
+          (\x -> if x == 1
+                 then Nothing
+                 else Just x)
+          (DM.fromList 0 [(0, 1), (1, 2), (2, 3)])
+        `shouldBe` Nothing
 
 functorCompositionProp :: DM.DefaultMap KeyType ValueType
                        -> Fun OtherType AnotherType
@@ -154,3 +171,12 @@ applicativeFunctorConsistentProp
 applicativeFunctorConsistentProp (Fn f) m = (fmap f m)
   `shouldBe` (pure f <*> m)
 
+foldableProp :: Fun (ValueType, OtherType) OtherType
+             -> [(KeyType, ValueType)]
+             -> OtherType
+             -> ValueType
+             -> IO ()
+foldableProp fWrapped xs z def = foldr f z (DM.fromList def xs)
+  `shouldBe` foldr f z ((def:) $ snd <$> DM.toList (DM.fromList def xs))
+  where
+    f = curry $ applyFun fWrapped
