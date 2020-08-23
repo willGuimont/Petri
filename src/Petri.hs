@@ -3,7 +3,7 @@
 
 module Petri
     ( Net
-    , Id
+    , Id(Id)
     , Place
     , Transition
     , emptyNet

@@ -1,7 +1,12 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Main (main) where
 
+import           Control.Lens
 import           Graphics.Gloss
 import           Graphics.Gloss.Interface.IO.Game
+import qualified Data.Map as M
+import           Petri
 
 {-
 Workflow for UI
@@ -22,7 +27,16 @@ Workflow for UI
 
 -}
 -- Type
-data World = World {  }
+type Position = (Float, Float)
+type PlacePositions = M.Map (Id Place) Position
+type TransitionPositions = M.Map (Id Transition) Position
+
+data World = World { _net :: Net
+                   , _placePositions :: PlacePositions
+                   , _transitionPositions :: TransitionPositions
+                   }
+
+makeLenses ''World
 
 -- Constants
 fps :: Int
@@ -31,22 +45,84 @@ fps = 20
 windowSize :: Int
 windowSize = 500
 
+placeRadius :: Float
+placeRadius = 50
+
+numTokenScale :: Float
+numTokenScale = 0.25
+
+numTokenOffset :: Float
+numTokenOffset = -placeRadius / 4
+
 -- Game
 windowDisplay :: Display
 windowDisplay = InWindow "Petri Net" (windowSize, windowSize) (10, 10)
 
+testNet :: Net
+testNet = net11
+  where
+    net0 = emptyNet
+
+    (place1, net1) = addEmptyPlace net0
+
+    (place2, net2) = addEmptyPlace net1
+
+    (transition, net3) = addEmptyTransition net2
+
+    net4 = addPlaceDeltaToTransition place1 transition (placeDeltaOf (-1)) net3
+
+    net5 = addPlaceDeltaToTransition place2 transition (placeDeltaOf 1) net4
+
+    net6 = addPlaceDeltaToTransition place2 transition (placeDeltaOf 1) net5
+
+    net7 = addPlaceDeltaToTransition place2 transition (placeDeltaOf 1) net6
+
+    net8 = addPlaceDeltaToTransition place2 transition (placeDeltaOf (-1)) net7
+
+    Just net9 = applyPlaceDeltaToNet place1 (placeDeltaOf 2) net8
+
+    Just net10 = applyPlaceDeltaToNet place2 (placeDeltaOf 1) net9
+
+    Just net11 = step net10
+
+placePositionsTest :: PlacePositions
+placePositionsTest = M.fromList [(Id 0, (-150, 0)), (Id 1, (150, 0))]
+
+transitionPositionsTest :: TransitionPositions
+transitionPositionsTest = M.fromList [(Id 0, (5, 0))]
+
 initialState :: World
-initialState = World {  }
+initialState = World { _net = testNet
+                     , _placePositions = placePositionsTest
+                     , _transitionPositions = transitionPositionsTest
+                     }
 
+-- Draw
 draw :: World -> Picture
-draw _ = circle 10.0
+draw w = pictures $ concat $ concat <$> [[dp i | i <- placeIndices]]
+  where
+    dp = drawPlace (w ^. placePositions) (w ^. net)
+    placeIndices = M.keys (w ^. placePositions)
 
+drawPlace :: PlacePositions -> Net -> Id Place -> [Picture]
+drawPlace pp n i = [placePicture, numTokenText]
+  where
+    Just (x, y) = M.lookup i pp
+    numToken = numTokenAtPlace i n
+    translated = translate x y 
+    placePicture = translated $ color black $ circle placeRadius
+    -- TODO draw dots instead?
+    numTokenText = translated $ translate numTokenOffset numTokenOffset $ scale numTokenScale numTokenScale $ text $ show numToken
+
+-- Inputs
 inputHandler :: Event -> World -> World
 inputHandler _ = id
 
+-- Update
 update :: Float -> World -> World
 update _ = id
 
+-- Main
 main :: IO ()
 main =
   play windowDisplay (light orange) fps initialState draw inputHandler update
