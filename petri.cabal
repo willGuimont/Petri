@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3e8ed86b105b5a406ce85fd5c432c06fe035075af6359a0c7f2e8269ce0acff9
+-- hash: ee8498b362c27ab540102715b17a35f87404796a25666a66049621d8f982ede7
 
 name:           petri
 version:        0.1.0.0
@@ -45,7 +45,6 @@ library
 executable petri-exe
   main-is: Main.hs
   other-modules:
-      VisualPetri
       Paths_petri
   hs-source-dirs:
       app

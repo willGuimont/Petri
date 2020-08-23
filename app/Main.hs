@@ -62,6 +62,18 @@ transitionWidth = 25
 transitionHeight :: Float
 transitionHeight = 150
 
+stepButtonPosition :: (Float, Float)
+stepButtonPosition = (190, -210)
+
+stepButtonText :: String
+stepButtonText = "Step"
+
+stepButtonTextScale :: Float
+stepButtonTextScale = 0.25
+
+stepButtonSize :: (Float, Float)
+stepButtonSize = (100, 50)
+
 -- Game
 windowDisplay :: Display
 windowDisplay = InWindow "Petri Net" (windowSize, windowSize) (10, 10)
@@ -107,7 +119,7 @@ initialState = World { _worldNet = testNet
 
 -- Draw
 draw :: World -> Picture
-draw w = pictures $ drawPlaces pp n ++ drawTransitions tp
+draw w = pictures $ drawPlaces pp n ++ drawTransitions tp ++ drawButtons
   where
     pp = w ^. worldPlacePositions
 
@@ -149,6 +161,13 @@ drawTransition tp i = [trans]
     Just (x, y) = M.lookup i tp
 
     trans = translate x y $ rectangleWire transitionWidth transitionHeight
+
+drawButtons :: [Picture]
+drawButtons = [stepText, stepBoundingBox]
+  where
+    translated = uncurry translate stepButtonPosition
+    stepText = translated $ translate (-45) (-10) $ scale stepButtonTextScale stepButtonTextScale $ text stepButtonText
+    stepBoundingBox = translated $ uncurry rectangleWire stepButtonSize
 
 -- Inputs
 inputHandler :: Event -> World -> World
