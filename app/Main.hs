@@ -33,9 +33,9 @@ type PlacePositions = M.Map (Id Place) Position
 
 type TransitionPositions = M.Map (Id Transition) Position
 
-data World = World { _net :: Net
-                   , _placePositions :: PlacePositions
-                   , _transitionPositions :: TransitionPositions
+data World = World { _worldNet :: Net
+                   , _worldPlacePositions :: PlacePositions
+                   , _worldTransitionPositions :: TransitionPositions
                    }
 
 makeLenses ''World
@@ -100,25 +100,25 @@ transitionPositionsTest :: TransitionPositions
 transitionPositionsTest = M.fromList [(Id 0, (0, 0))]
 
 initialState :: World
-initialState = World { _net = testNet
-                     , _placePositions = placePositionsTest
-                     , _transitionPositions = transitionPositionsTest
+initialState = World { _worldNet = testNet
+                     , _worldPlacePositions = placePositionsTest
+                     , _worldTransitionPositions = transitionPositionsTest
                      }
 
 -- Draw
 draw :: World -> Picture
-draw w = pictures
-  $ concat
-  $ concat
-  <$> [[dPlace i | i <- placeIndices], [dTrans i | i <- transitionIndices]]
+draw w = pictures $ drawPlaces pp n ++ drawTransitions tp
   where
-    dPlace = drawPlace (w ^. placePositions) (w ^. net)
+    pp = w ^. worldPlacePositions
 
-    placeIndices = M.keys (w ^. placePositions)
+    n = w ^. worldNet
 
-    dTrans = drawTransition (w ^. transitionPositions) (w ^. net)
+    tp = w ^. worldTransitionPositions
 
-    transitionIndices = M.keys (w ^. transitionPositions)
+drawPlaces :: PlacePositions -> Net -> [Picture]
+drawPlaces pp n = concat [drawPlace pp n i | i <- placeIndices]
+  where
+    placeIndices = M.keys pp
 
 drawPlace :: PlacePositions -> Net -> Id Place -> [Picture]
 drawPlace pp n i = [placePicture, numTokenText]
@@ -138,8 +138,13 @@ drawPlace pp n i = [placePicture, numTokenText]
       $ text
       $ show numToken
 
-drawTransition :: TransitionPositions -> Net -> Id Transition -> [Picture]
-drawTransition tp n i = [trans]
+drawTransitions :: TransitionPositions -> [Picture]
+drawTransitions tp = concat [drawTransition tp i | i <- transitionIndices]
+  where
+    transitionIndices = M.keys tp
+
+drawTransition :: TransitionPositions -> Id Transition -> [Picture]
+drawTransition tp i = [trans]
   where
     Just (x, y) = M.lookup i tp
 
