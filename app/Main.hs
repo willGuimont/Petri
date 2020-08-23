@@ -28,7 +28,9 @@ Workflow for UI
 -}
 -- Type
 type Position = (Float, Float)
+
 type PlacePositions = M.Map (Id Place) Position
+
 type TransitionPositions = M.Map (Id Transition) Position
 
 data World = World { _net :: Net
@@ -53,6 +55,12 @@ numTokenScale = 0.25
 
 numTokenOffset :: Float
 numTokenOffset = -placeRadius / 4
+
+transitionWidth :: Float
+transitionWidth = 25
+
+transitionHeight :: Float
+transitionHeight = 150
 
 -- Game
 windowDisplay :: Display
@@ -89,7 +97,7 @@ placePositionsTest :: PlacePositions
 placePositionsTest = M.fromList [(Id 0, (-150, 0)), (Id 1, (150, 0))]
 
 transitionPositionsTest :: TransitionPositions
-transitionPositionsTest = M.fromList [(Id 0, (5, 0))]
+transitionPositionsTest = M.fromList [(Id 0, (0, 0))]
 
 initialState :: World
 initialState = World { _net = testNet
@@ -99,20 +107,43 @@ initialState = World { _net = testNet
 
 -- Draw
 draw :: World -> Picture
-draw w = pictures $ concat $ concat <$> [[dp i | i <- placeIndices]]
+draw w = pictures
+  $ concat
+  $ concat
+  <$> [[dPlace i | i <- placeIndices], [dTrans i | i <- transitionIndices]]
   where
-    dp = drawPlace (w ^. placePositions) (w ^. net)
+    dPlace = drawPlace (w ^. placePositions) (w ^. net)
+
     placeIndices = M.keys (w ^. placePositions)
+
+    dTrans = drawTransition (w ^. transitionPositions) (w ^. net)
+
+    transitionIndices = M.keys (w ^. transitionPositions)
 
 drawPlace :: PlacePositions -> Net -> Id Place -> [Picture]
 drawPlace pp n i = [placePicture, numTokenText]
   where
     Just (x, y) = M.lookup i pp
+
     numToken = numTokenAtPlace i n
-    translated = translate x y 
+
+    translated = translate x y
+
     placePicture = translated $ color black $ circle placeRadius
+
     -- TODO draw dots instead?
-    numTokenText = translated $ translate numTokenOffset numTokenOffset $ scale numTokenScale numTokenScale $ text $ show numToken
+    numTokenText = translated
+      $ translate numTokenOffset numTokenOffset
+      $ scale numTokenScale numTokenScale
+      $ text
+      $ show numToken
+
+drawTransition :: TransitionPositions -> Net -> Id Transition -> [Picture]
+drawTransition tp n i = [trans]
+  where
+    Just (x, y) = M.lookup i tp
+
+    trans = translate x y $ rectangleWire transitionWidth transitionHeight
 
 -- Inputs
 inputHandler :: Event -> World -> World
