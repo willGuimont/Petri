@@ -10,6 +10,7 @@ module Petri
     , addEmptyPlace
     , addEmptyTransition
     , placeDeltaOf
+    , transitionAsDefaultMap
     , addPlaceDeltaToTransition
     , applyPlaceDeltaToNet
     , applyPlaceDeltaToPlace
@@ -88,6 +89,11 @@ addEmptyPlace n = (i', n')
 
 emptyTransition :: Transition
 emptyTransition = Transition { _transMap = DM.empty (placeDeltaOf 0) }
+
+transitionAsDefaultMap
+  :: Net -> Id Transition -> Maybe (DM.DefaultMap (Id Place) PlaceDelta)
+transitionAsDefaultMap n i = M.lookup i (n ^. netTransitions)
+  ^? _Just . transMap
 
 -- Add an empty transition to the net, uses consecutive indices
 addEmptyTransition :: Net -> (Id Transition, Net)

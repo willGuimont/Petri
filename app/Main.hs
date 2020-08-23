@@ -5,7 +5,9 @@ module Main (main) where
 import           Control.Lens
 import           Graphics.Gloss
 import           Graphics.Gloss.Interface.IO.Game
+import           Data.Tuple
 import qualified Data.Map as M
+import qualified DefaultMap as DM
 import           Petri
 
 {-
@@ -27,15 +29,21 @@ Workflow for UI
 
 -}
 -- Type
-type Position = (Float, Float)
+type PlacePositions = M.Map (Id Place) Point
 
-type PlacePositions = M.Map (Id Place) Position
+type TransitionPositions = M.Map (Id Transition) Point
 
-type TransitionPositions = M.Map (Id Transition) Position
+data Direction = ToPlace
+               | FromPlace
+
+type TransitionDirections = M.Map (Id Place) Direction
+
+type TransitionDirectionMap = M.Map (Id Transition) TransitionDirections
 
 data World = World { _worldNet :: Net
                    , _worldPlacePositions :: PlacePositions
                    , _worldTransitionPositions :: TransitionPositions
+                   , _worldTransitionDirectionMap :: TransitionDirectionMap
                    }
 
 makeLenses ''World
@@ -74,6 +82,23 @@ stepButtonTextScale = 0.25
 stepButtonSize :: (Float, Float)
 stepButtonSize = (100, 50)
 
+-- Utils
+addPoints :: Point -> Point -> Point
+addPoints p1 = bimap (fst p1 +) (snd p1 +)
+
+subPoints :: Point -> Point -> Point
+subPoints p1 = bimap (fst p1 -) (snd p1 -)
+
+scalePoint :: Float -> Point -> Point
+scalePoint x = bimap (* x) (* x)
+
+normalizePoint :: Point -> Point
+normalizePoint p = scalePoint (1 / n) p
+  where
+    p2 = bimap (* fst p) (* snd p) p
+
+    n = sqrt $ uncurry (+) p2
+
 -- Game
 windowDisplay :: Display
 windowDisplay = InWindow "Petri Net" (windowSize, windowSize) (10, 10)
@@ -111,21 +136,32 @@ placePositionsTest = M.fromList [(Id 0, (-150, 0)), (Id 1, (150, 0))]
 transitionPositionsTest :: TransitionPositions
 transitionPositionsTest = M.fromList [(Id 0, (0, 0))]
 
+transitionDirectionMapTest :: TransitionDirectionMap
+transitionDirectionMapTest =
+  M.fromList [(Id 0, M.fromList [(Id 0, FromPlace), (Id 1, ToPlace)])]
+
 initialState :: World
 initialState = World { _worldNet = testNet
                      , _worldPlacePositions = placePositionsTest
                      , _worldTransitionPositions = transitionPositionsTest
+                     , _worldTransitionDirectionMap = transitionDirectionMapTest
                      }
 
 -- Draw
 draw :: World -> Picture
-draw w = pictures $ drawPlaces pp n ++ drawTransitions tp ++ drawButtons
+draw w = pictures
+  $ drawPlaces pp n
+  ++ drawTransitions tp
+  ++ drawButtons
+  ++ drawArcsForTransitions tp pp tdm n
   where
     pp = w ^. worldPlacePositions
 
     n = w ^. worldNet
 
     tp = w ^. worldTransitionPositions
+
+    tdm = w ^. worldTransitionDirectionMap
 
 drawPlaces :: PlacePositions -> Net -> [Picture]
 drawPlaces pp n = concat [drawPlace pp n i | i <- placeIndices]
@@ -160,14 +196,82 @@ drawTransition tp i = [trans]
   where
     Just (x, y) = M.lookup i tp
 
-    trans = translate x y $ rectangleWire transitionWidth transitionHeight
+    trans = translate x y $ rectangleSolid transitionWidth transitionHeight
 
 drawButtons :: [Picture]
 drawButtons = [stepText, stepBoundingBox]
   where
     translated = uncurry translate stepButtonPosition
-    stepText = translated $ translate (-45) (-10) $ scale stepButtonTextScale stepButtonTextScale $ text stepButtonText
+
+    stepText = translated
+      $ translate (-45) (-10)
+      $ scale stepButtonTextScale stepButtonTextScale
+      $ text stepButtonText
+
     stepBoundingBox = translated $ uncurry rectangleWire stepButtonSize
+
+drawArcsForTransitions
+  :: TransitionPositions
+  -> PlacePositions
+  -> TransitionDirectionMap
+  -> Net
+  -> [Picture]
+drawArcsForTransitions tp pp tdm n =
+  concat [drawArcForTransition tp pp tdm i n | i <- transitionIndices]
+  where
+    transitionIndices = M.keys tp
+
+drawArcForTransition
+  :: TransitionPositions
+  -> PlacePositions
+  -> TransitionDirectionMap
+  -> Id Transition
+  -> Net
+  -> [Picture]
+drawArcForTransition tp pp tdm i n =
+  concat [drawArc tp pp td i ip | ip <- placeIndices]
+  where
+    placeIndices = maybe [] DM.keys (transitionAsDefaultMap n i)
+
+    Just td = M.lookup i tdm
+
+drawArc :: TransitionPositions
+        -> PlacePositions
+        -> TransitionDirections
+        -> Id Transition
+        -> Id Place
+        -> [Picture]
+drawArc tp pp td it ip = arrow:[line [lineStart, transPos]]
+  where
+    Just transPos = M.lookup it tp
+
+    Just placePos = M.lookup ip pp
+
+    dp = normalizePoint $ subPoints transPos placePos
+
+    startOffset = placeRadius
+
+    lineStart = addPoints placePos $ scalePoint startOffset dp
+
+    center = scalePoint 0.5 $ addPoints lineStart transPos
+
+    translated = uncurry translate center
+
+    angle = (* (-180 / pi)) $ uncurry atan2 $ swap dp
+
+    Just arrowDirection = M.lookup ip td
+
+    dir :: Picture -> Picture
+    trans :: Picture -> Picture
+    (dir, trans) = case arrowDirection of
+      ToPlace   -> (scale (-1) (-1), translate (-15) 0)
+      FromPlace -> (scale 1 1, id)
+
+    rotated = rotate angle
+
+    arrowLegs = line [(-1, -1), (0, 0), (-1, 1)]
+
+    arrow = translated $ rotated $ trans $ dir $ scale 15 15 arrowLegs
 
 -- Inputs
 inputHandler :: Event -> World -> World
