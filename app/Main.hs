@@ -82,6 +82,11 @@ stepButtonTextScale = 0.25
 stepButtonSize :: (Float, Float)
 stepButtonSize = (100, 50)
 
+arrowSize :: Float
+arrowSize = 15
+
+numDeltaTokenScale = 0.25
+
 -- Utils
 addPoints :: Point -> Point -> Point
 addPoints p1 = bimap (fst p1 +) (snd p1 +)
@@ -229,7 +234,7 @@ drawArcForTransition
   -> Net
   -> [Picture]
 drawArcForTransition tp pp tdm i n =
-  concat [drawArc tp pp td i ip | ip <- placeIndices]
+  concat [drawArc tp pp td i ip n | ip <- placeIndices]
   where
     placeIndices = maybe [] DM.keys (transitionAsDefaultMap n i)
 
@@ -240,8 +245,9 @@ drawArc :: TransitionPositions
         -> TransitionDirections
         -> Id Transition
         -> Id Place
+        -> Net
         -> [Picture]
-drawArc tp pp td it ip = arrow:[line [lineStart, transPos]]
+drawArc tp pp td it ip n = numTokenText:arrow:[line [lineStart, transPos]]
   where
     Just transPos = M.lookup it tp
 
@@ -264,14 +270,18 @@ drawArc tp pp td it ip = arrow:[line [lineStart, transPos]]
     dir :: Picture -> Picture
     trans :: Picture -> Picture
     (dir, trans) = case arrowDirection of
-      ToPlace   -> (scale (-1) (-1), translate (-15) 0)
+      ToPlace   -> (scale (-1) (-1), translate (-arrowSize) 0)
       FromPlace -> (scale 1 1, id)
 
     rotated = rotate angle
 
     arrowLegs = line [(-1, -1), (0, 0), (-1, 1)]
 
-    arrow = translated $ rotated $ trans $ dir $ scale 15 15 arrowLegs
+    arrow = translated $ rotated $ trans $ dir $ scale arrowSize arrowSize arrowLegs
+
+    Just numToken = deltaOfTransition it ip n
+
+    numTokenText = translated $ translate 0 arrowSize $ scale numDeltaTokenScale numDeltaTokenScale $ text $ show numToken
 
 -- Inputs
 inputHandler :: Event -> World -> World

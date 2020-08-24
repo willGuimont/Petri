@@ -6,6 +6,7 @@ module Petri
     , Id(Id)
     , Place
     , Transition
+    , PlaceDelta(PlaceDelta)
     , emptyNet
     , addEmptyPlace
     , addEmptyTransition
@@ -13,6 +14,7 @@ module Petri
     , transitionAsDefaultMap
     , addPlaceDeltaToTransition
     , applyPlaceDeltaToNet
+    , deltaOfTransition
     , applyPlaceDeltaToPlace
     , step
     , numTokenAtPlace) where
@@ -38,6 +40,9 @@ type Places = DM.DefaultMap (Id Place) Place
 newtype PlaceDelta = PlaceDelta { _placeDeltaToken :: Integer }
 
 makeLenses ''PlaceDelta
+
+instance Show PlaceDelta where
+  show = show . abs . view placeDeltaToken
 
 instance Semigroup PlaceDelta where
   x <> y = PlaceDelta { _placeDeltaToken =
@@ -89,6 +94,11 @@ addEmptyPlace n = (i', n')
 
 emptyTransition :: Transition
 emptyTransition = Transition { _transMap = DM.empty (placeDeltaOf 0) }
+
+deltaOfTransition :: Id Transition -> Id Place -> Net -> Maybe PlaceDelta
+deltaOfTransition it ip n = DM.lookup ip . view transMap <$> M.lookup it nt
+  where
+    nt = n ^. netTransitions
 
 transitionAsDefaultMap
   :: Net -> Id Transition -> Maybe (DM.DefaultMap (Id Place) PlaceDelta)
