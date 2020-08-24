@@ -1,5 +1,11 @@
+# Stack
 .stack-work/
 *~
+
+# IntelliJ
+.idea
+out/
+petri.iml
 
 # Created by https://www.toptal.com/developers/gitignore/api/haskell,code
 # Edit at https://www.toptal.com/developers/gitignore?templates=haskell,code
