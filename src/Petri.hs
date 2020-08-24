@@ -25,7 +25,7 @@ import qualified Data.Map as M
 import qualified DefaultMap as DM
 
 newtype Id a = Id Integer
-  deriving (Eq)
+  deriving (Eq, Show)
 
 deriving instance Ord (Id a)
 
@@ -114,7 +114,7 @@ addEmptyTransition n = (i', n')
     i' = Id i :: Id Transition
 
     n' = (netTransitions %~ M.insert i' emptyTransition)
-      . (netNextPlaceIndex %~ (+ 1))
+      . (netNextTransitionIndex %~ (+ 1))
       $ n
 
 -- Creates a PlaceDelta

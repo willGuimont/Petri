@@ -6,6 +6,7 @@ import           Control.Lens
 import           Graphics.Gloss
 import           Graphics.Gloss.Interface.IO.Game
 import           Data.Tuple
+import           Data.Maybe
 import qualified Data.Map as M
 import qualified DefaultMap as DM
 import           Petri
@@ -85,6 +86,7 @@ stepButtonSize = (100, 50)
 arrowSize :: Float
 arrowSize = 15
 
+numDeltaTokenScale :: Float
 numDeltaTokenScale = 0.25
 
 -- Utils
@@ -109,7 +111,7 @@ windowDisplay :: Display
 windowDisplay = InWindow "Petri Net" (windowSize, windowSize) (10, 10)
 
 testNet :: Net
-testNet = net11
+testNet = net14
   where
     net0 = emptyNet
 
@@ -133,17 +135,25 @@ testNet = net11
 
     Just net10 = applyPlaceDeltaToNet place2 (placeDeltaOf 1) net9
 
-    Just net11 = step net10
+    (place3, net11) = addEmptyPlace net10
+
+    net12 =
+      addPlaceDeltaToTransition place3 transition (placeDeltaOf (-1)) net11
+
+    Just net13 = applyPlaceDeltaToNet place3 (placeDeltaOf 1) net12
+
+    net14 = addPlaceDeltaToTransition place1 transition (placeDeltaOf (-1)) net13
 
 placePositionsTest :: PlacePositions
-placePositionsTest = M.fromList [(Id 0, (-150, 0)), (Id 1, (150, 0))]
+placePositionsTest =
+  M.fromList [(Id 0, (-150, 100)), (Id 1, (150, 0)), (Id 2, (-150, -100))]
 
 transitionPositionsTest :: TransitionPositions
 transitionPositionsTest = M.fromList [(Id 0, (0, 0))]
 
 transitionDirectionMapTest :: TransitionDirectionMap
 transitionDirectionMapTest =
-  M.fromList [(Id 0, M.fromList [(Id 0, FromPlace), (Id 1, ToPlace)])]
+  M.fromList [(Id 0, M.fromList [(Id 0, FromPlace), (Id 1, ToPlace), (Id 2, FromPlace)])]
 
 initialState :: World
 initialState = World { _worldNet = testNet
@@ -281,11 +291,19 @@ drawArc tp pp td it ip n = numTokenText:arrow:[line [lineStart, transPos]]
 
     Just numToken = deltaOfTransition it ip n
 
-    numTokenText = translated $ translate 0 arrowSize $ scale numDeltaTokenScale numDeltaTokenScale $ text $ show numToken
+    numTokenText = translated
+      $ translate 0 arrowSize
+      $ scale numDeltaTokenScale numDeltaTokenScale
+      $ text
+      $ show numToken
 
 -- Inputs
 inputHandler :: Event -> World -> World
-inputHandler _ = id
+inputHandler (EventKey (MouseButton LeftButton) Down _ pos) w =
+  (worldNet %~ (fromMaybe n . step)) w
+  where
+    n = w ^. worldNet
+inputHandler _ w = w
 
 -- Update
 update :: Float -> World -> World
