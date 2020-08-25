@@ -18,10 +18,13 @@ type TransitionDirections = M.Map (Id Place) Direction
 
 type TransitionDirectionMap = M.Map (Id Transition) TransitionDirections
 
+data PlacementMode = PlaceMode | TransitionMode | ArcMode
+
 data World = World { _worldNet :: Net
                    , _worldPlacePositions :: PlacePositions
                    , _worldTransitionPositions :: TransitionPositions
                    , _worldTransitionDirectionMap :: TransitionDirectionMap
+                   , _worldPlacementMode ::PlacementMode
                    }
 
 makeLenses ''World

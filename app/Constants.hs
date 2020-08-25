@@ -21,14 +21,14 @@ transitionWidth = 25
 transitionHeight :: Float
 transitionHeight = 150
 
-stepButtonPosition :: (Float, Float)
-stepButtonPosition = (190, -210)
+instructionPosition :: (Float, Float)
+instructionPosition = (-240, -240)
 
-stepButtonText :: String
-stepButtonText = "Step"
+instructionText :: String
+instructionText = "Space to step, z to place places, x to place transitions, c to add arcs"
 
-stepButtonTextScale :: Float
-stepButtonTextScale = 0.25
+instructionTextScale :: Float
+instructionTextScale = 0.1
 
 stepButtonSize :: (Float, Float)
 stepButtonSize = (100, 50)

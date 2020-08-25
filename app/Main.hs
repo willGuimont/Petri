@@ -1,14 +1,14 @@
 module Main (main) where
 
-import           Control.Lens
-import           Graphics.Gloss
-import           Graphics.Gloss.Interface.IO.Game
-import           Data.Maybe
+import AppTypes
+import Constants
+import Control.Lens
 import qualified Data.Map as M
-import           Petri
-import           AppTypes
-import           Constants
-import           Draw
+import Data.Maybe
+import Draw
+import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Game
+import Petri
 
 {-
 Workflow for UI
@@ -33,19 +33,24 @@ windowDisplay :: Display
 windowDisplay = InWindow "Petri Net" (windowSize, windowSize) (10, 10)
 
 initialState :: World
-initialState = World { _worldNet = emptyNet
-                     , _worldPlacePositions = M.empty
-                     , _worldTransitionPositions = M.empty
-                     , _worldTransitionDirectionMap = M.empty
-                     }
+initialState =
+  World
+    { _worldNet = emptyNet,
+      _worldPlacePositions = M.empty,
+      _worldTransitionPositions = M.empty,
+      _worldTransitionDirectionMap = M.empty,
+      _worldPlacementMode = PlaceMode
+    }
 
--- Draw
 -- Inputs
 inputHandler :: Event -> World -> World
-inputHandler (EventKey (MouseButton LeftButton) Down _ pos) w =
-  (worldNet %~ (fromMaybe n . step)) w
+inputHandler (EventKey (Char ' ') Down _ _) w =
+  (worldNet %~ (fromMaybe (w ^. worldNet) . step)) w
+inputHandler (EventKey (Char 'z') Down _ _) w = (worldPlacementMode .~ PlaceMode) w
+inputHandler (EventKey (Char 'x') Down _ _) w = (worldPlacementMode .~ TransitionMode) w
+inputHandler (EventKey (Char 'c') Down _ _) w = (worldPlacementMode .~ ArcMode) w
+inputHandler (EventKey (MouseButton LeftButton) Down _ pos) w = undefined
   where
-    n = w ^. worldNet
 inputHandler _ w = w
 
 -- Update

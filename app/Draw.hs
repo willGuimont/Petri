@@ -14,7 +14,7 @@ draw :: World -> Picture
 draw w = pictures
   $ drawPlaces pp n
   ++ drawTransitions tp
-  ++ drawButtons
+  ++ drawInstructions
   ++ drawArcsForTransitions tp pp tdm n
   where
     pp = w ^. worldPlacePositions
@@ -60,17 +60,14 @@ drawTransition tp i = [trans]
 
     trans = translate x y $ rectangleSolid transitionWidth transitionHeight
 
-drawButtons :: [Picture]
-drawButtons = [stepText, stepBoundingBox]
+drawInstructions :: [Picture]
+drawInstructions = [instruction]
   where
-    translated = uncurry translate stepButtonPosition
+    translated = uncurry translate instructionPosition
 
-    stepText = translated
-      $ translate (-45) (-10)
-      $ scale stepButtonTextScale stepButtonTextScale
-      $ text stepButtonText
-
-    stepBoundingBox = translated $ uncurry rectangleWire stepButtonSize
+    instruction = translated
+      $ scale instructionTextScale instructionTextScale
+      $ text instructionText
 
 drawArcsForTransitions
   :: TransitionPositions
