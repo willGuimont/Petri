@@ -40,7 +40,8 @@ dependencies:
   - containers
   - lens
   - gloss
-
+  - random
+  - random-shuffle
 library:
   source-dirs: src
 

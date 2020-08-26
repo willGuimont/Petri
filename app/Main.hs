@@ -4,7 +4,7 @@ import AppTypes
 import Constants
 import qualified Data.Map as M
 import Draw
-import Graphics.Gloss
+import Graphics.Gloss.Interface.IO.Game
 import Inputs
 import Petri
 
@@ -23,10 +23,10 @@ initialState =
     }
 
 -- Update
-update :: Float -> World -> World
-update _ = id
+update :: Float -> World -> IO World
+update _ = pure
 
 -- Main
 main :: IO ()
 main =
-  play windowDisplay (light orange) fps initialState draw inputHandler update
+  playIO windowDisplay (light orange) fps initialState draw inputHandler update

@@ -10,14 +10,17 @@ import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import MathUtils
 import Petri
+import System.Random
 
-inputHandler :: Event -> World -> World
-inputHandler (EventKey (SpecialKey KeySpace) Down _ _) w = (worldNet %~ (fromMaybe (w ^. worldNet) . step)) w
-inputHandler (EventKey (Char 'q') Down _ _) w = changeMode PlaceMode w
-inputHandler (EventKey (Char 'w') Down _ _) w = changeMode TransitionMode w
-inputHandler (EventKey (Char 'e') Down _ _) w = (resetSelection . changeMode ArcMode) w
-inputHandler (EventKey (MouseButton LeftButton) Down _ pos) w = placeStuff (w ^. worldPlacementMode) pos w
-inputHandler _ w = w
+inputHandler :: Event -> World -> IO World
+inputHandler (EventKey (SpecialKey KeySpace) Down _ _) w = do
+  gen <- newStdGen
+  pure $ (worldNet %~ (fromMaybe (w ^. worldNet) . step gen)) w
+inputHandler (EventKey (Char 'q') Down _ _) w = pure $ changeMode PlaceMode w
+inputHandler (EventKey (Char 'w') Down _ _) w = pure $ changeMode TransitionMode w
+inputHandler (EventKey (Char 'e') Down _ _) w = pure $ (resetSelection . changeMode ArcMode) w
+inputHandler (EventKey (MouseButton LeftButton) Down _ pos) w = pure $ placeStuff (w ^. worldPlacementMode) pos w
+inputHandler _ w = pure w
 
 changeMode :: PlacementMode -> World -> World
 changeMode pm = worldPlacementMode .~ pm
@@ -26,10 +29,11 @@ placeStuff :: PlacementMode -> Point -> World -> World
 placeStuff PlaceMode pos w = fromMaybe addedPlace $ mPlaceId >>= addTokenToPlace >>= \x -> Just ((worldNet .~ x) w)
   where
     n = w ^. worldNet
-    (placeId, n') = addEmptyPlace $ n
+    (placeId, n') = addEmptyPlace n
     addedPlace = (worldPlacePositions %~ M.insert placeId pos) . (worldNet .~ n') $ w
     mPlaceId = findSelectionInPlaces w pos
     addTokenToPlace (PlaceSelection i) = applyPlaceDeltaToNet i (placeDeltaOf 1) n
+    addTokenToPlace _ = Nothing
 placeStuff TransitionMode pos w = w'
   where
     (transId, n') = addEmptyTransition $ w ^. worldNet

@@ -59,7 +59,7 @@ spec = do
           let Just net10 =
                 P.applyPlaceDeltaToNet place2 (P.placeDeltaOf 1) net9
           -- Step
-          let Just net11 = P.step net10
+          let Just net11 = P.stepDeterministic net10
           -- Asserts
           P.numTokenAtPlace place1 net11 `shouldBe` 1
           P.numTokenAtPlace place2 net11 `shouldBe` 3

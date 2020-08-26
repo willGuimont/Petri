@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fe37aa71939bce06769032bb99ef741ecd8982f4e933745ec53fd5ad07373365
+-- hash: d66ece8800d47b6835fb9e506e814dacd6fc91d7b8a811f2acef2492b6975284
 
 name:           petri
 version:        0.1.0.0
@@ -40,6 +40,8 @@ library
     , containers
     , gloss
     , lens
+    , random
+    , random-shuffle
   default-language: Haskell2010
 
 executable petri-exe
@@ -61,6 +63,8 @@ executable petri-exe
     , gloss
     , lens
     , petri
+    , random
+    , random-shuffle
   default-language: Haskell2010
 
 test-suite petri-test
@@ -82,4 +86,6 @@ test-suite petri-test
     , hspec
     , lens
     , petri
+    , random
+    , random-shuffle
   default-language: Haskell2010

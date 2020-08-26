@@ -16,6 +16,7 @@ module Petri
     applyPlaceDeltaToNet,
     deltaOfTransition,
     applyPlaceDeltaToPlace,
+    stepDeterministic,
     step,
     numTokenAtPlace,
   )
@@ -25,6 +26,8 @@ import Control.Lens
 import qualified Data.Map as M
 import Data.Monoid
 import qualified DefaultMap as DM
+import System.Random
+import System.Random.Shuffle
 
 newtype Id a = Id Integer
   deriving (Eq, Show)
@@ -39,7 +42,7 @@ makeLenses ''Place
 
 type Places = DM.DefaultMap (Id Place) Place
 
-newtype PlaceDelta = PlaceDelta {_placeDeltaToken :: Integer}
+newtype PlaceDelta = PlaceDelta {_placeDeltaToken :: Integer} deriving (Eq)
 
 makeLenses ''PlaceDelta
 
@@ -170,8 +173,8 @@ applyTransition ps ts = sequenceA (arcs <*> ps)
 -- Try to apply the first fireable transition to the net
 -- If none can fire, returns Nothing
 -- TODO should sort by priority
-step :: Net -> Maybe Net
-step net = do
+stepDeterministic :: Net -> Maybe Net
+stepDeterministic net = do
   nextNet <-
     getFirst . mconcat $
       fmap (First . applyTransition places) transitions
@@ -179,6 +182,17 @@ step net = do
   where
     places = net ^. netPlaces
     transitions = snd <$> M.toList (net ^. netTransitions)
+
+step :: RandomGen gen => gen -> Net -> Maybe Net
+step gen net = do
+  nextNet <-
+    getFirst . mconcat $
+      fmap (First . applyTransition places) transitions
+  return $ (netPlaces .~ nextNet) net
+  where
+    places = net ^. netPlaces
+    asList = M.toList (net ^. netTransitions)
+    transitions = snd <$> shuffle' asList (length asList) gen
 
 -- Returns the number of token at a place
 numTokenAtPlace :: Id Place -> Net -> Integer

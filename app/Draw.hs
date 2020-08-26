@@ -11,9 +11,9 @@ import Graphics.Gloss
 import MathUtils
 import Petri
 
-draw :: World -> Picture
+draw :: World -> IO Picture
 draw w =
-  pictures $
+  pure . pictures $
     drawPlaces pp n
       ++ drawTransitions tp
       ++ drawInstructions
@@ -96,7 +96,7 @@ drawArc ::
   Id Place ->
   Net ->
   [Picture]
-drawArc tp pp td it ip n = numTokenText : arrow : [line [lineStart, transPos]]
+drawArc tp pp td it ip n = if numToken == placeDeltaOf 0 then [blank] else numTokenText : arrow : [line [lineStart, transPos]]
   where
     Just transPos = M.lookup it tp
     Just placePos = M.lookup ip pp
