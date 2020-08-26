@@ -60,9 +60,7 @@ instance Ord k => Traversable (DefaultMap k) where
   traverse f m = fromList <$> def <*> list
     where
       bs = traverse f $ snd <$> toList m
-
       list = zip (keys m) <$> bs
-
       def = f (m ^. defDefault)
 
 mapOnMap :: (M.Map k v -> M.Map kk v) -> DefaultMap k v -> DefaultMap kk v
