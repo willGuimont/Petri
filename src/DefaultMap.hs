@@ -1,30 +1,32 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module DefaultMap
-    ( DefaultMap
-    , empty
-    , singleton
-    , fromList
-    , insert
-    , adjust
-    , adjustWithKey
-    , delete
-    , lookup
-    , (!)
-    , member
-    , notMember
-    , null
-    , size
-    , toList
-    , keys) where
+  ( DefaultMap,
+    empty,
+    singleton,
+    fromList,
+    insert,
+    adjust,
+    adjustWithKey,
+    delete,
+    lookup,
+    (!),
+    member,
+    notMember,
+    null,
+    size,
+    toList,
+    keys,
+  )
+where
 
-import           Control.Lens
+import Control.Lens
+import Data.List (nub)
 import qualified Data.Map as M
-import           Data.Maybe
-import           Prelude hiding (lookup, null)
-import           Data.List (nub)
+import Data.Maybe
+import Prelude hiding (lookup, null)
 
-data DefaultMap k v = DefMap { _defDefault :: v, _defMap :: M.Map k v }
+data DefaultMap k v = DefMap {_defDefault :: v, _defMap :: M.Map k v}
   deriving (Show, Eq)
 
 makeLenses ''DefaultMap
@@ -33,7 +35,7 @@ makeLenses ''DefaultMap
 instance Functor (DefaultMap k) where
   -- Maps function on the default value and values of the map
   fmap f dm =
-    DefMap { _defDefault = f (dm ^. defDefault), _defMap = f <$> dm ^. defMap }
+    DefMap {_defDefault = f (dm ^. defDefault), _defMap = f <$> dm ^. defMap}
 
 instance (Ord k) => Applicative (DefaultMap k) where
   -- Empty map with x as a default
@@ -44,9 +46,9 @@ instance (Ord k) => Applicative (DefaultMap k) where
   f <*> x = go (nub $ keys f ++ keys x) $ empty def
     where
       def = f ^. defDefault $ x ^. defDefault
-
-      go (k:ks) m = let m' = insert k ((f ! k) (x ! k)) m
-                    in go ks m'
+      go (k : ks) m =
+        let m' = insert k ((f ! k) (x ! k)) m
+         in go ks m'
       go [] m = m
 
 instance Foldable (DefaultMap k) where
@@ -84,8 +86,8 @@ insert k x = mapOnMap (M.insert k x)
 adjust :: Ord k => (v -> v) -> k -> DefaultMap k v -> DefaultMap k v
 adjust f = adjustWithKey (\_ y -> f y)
 
-adjustWithKey
-  :: Ord k => (k -> v -> v) -> k -> DefaultMap k v -> DefaultMap k v
+adjustWithKey ::
+  Ord k => (k -> v -> v) -> k -> DefaultMap k v -> DefaultMap k v
 adjustWithKey f k m = (insert k $ f k $ lookup k m) m
 
 delete :: Ord k => k -> DefaultMap k v -> DefaultMap k v
