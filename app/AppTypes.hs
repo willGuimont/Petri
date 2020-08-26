@@ -38,6 +38,7 @@ data World = World
     _worldTransitionDirectionMap :: TransitionDirectionMap,
     _worldPlacementMode :: PlacementMode,
     _worldLastArcSelection :: Maybe Selection
-  } deriving (Show)
+  }
+  deriving (Show)
 
 makeLenses ''World

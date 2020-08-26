@@ -12,6 +12,7 @@ import MathUtils
 import Petri
 import System.Random
 
+-- TODO handle deletion of places and transitions
 inputHandler :: Event -> World -> IO World
 inputHandler (EventKey (SpecialKey KeySpace) Down _ _) w = do
   gen <- newStdGen
