@@ -64,7 +64,7 @@ resetSelection :: World -> World
 resetSelection = worldLastArcSelection .~ Nothing
 
 findSelection :: World -> Point -> Maybe Selection
-findSelection w pos = getFirst $ mconcat $ First . (\f -> f w pos) <$> [findSelectionInPlaces, findSelectionInTransitions]
+findSelection w pos = getFirst $ mconcat $ First . (\f -> f w pos) <$> [findSelectionInTransitions, findSelectionInPlaces]
 
 findSelectionInPlaces :: World -> Point -> Maybe Selection
 findSelectionInPlaces w pos = listToMaybe collisionPlaces
